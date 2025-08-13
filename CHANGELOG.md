@@ -1,5 +1,13 @@
 # Changelog for `Prōspecta.cc`
 
+#### 2025-08-13 16:25 UTC (+00:00) [7326dfe] [main]
+
+##### [SNC] Add changelog and first entry
+
+- Insert latest commit with local timezone/offset
+
+
+
 #### 2025-08-13 16:01 UTC (+00:00) [d9e78e7] [main]
 
 ##### [NSC] Initialise Prospecta.cc vhost skeleton
