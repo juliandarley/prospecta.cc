@@ -1,0 +1,22 @@
+# Commit Message Template (`/var/www/energystats.co/templates/commit.template`)
+# Delete these comment lines before committing.
+# Line 1: datestamp [hash] [branch]
+# Line 2: Blank
+# Line 3: Summary of all changes (50 chars or less)
+# Line 4: Blank
+# Line 5+: Change 1 heading followed by detailed description with bullet points; leave blank line, then Change 2 heading and details; etc for as many different changes as there are.
+
+EXAMPLE in MARKDOWN
+#### 2025-04-10 23:45 UTC [39e73b0] [analysis]
+
+##### summary of changes (cursor should create this)
+
+- First change or feature added:
+  * Specific implementation detail
+  * Another specific detail
+  * Technical note or clarification
+
+- Second change or improvement:
+  * Related implementation detail
+  * Another specific point
+

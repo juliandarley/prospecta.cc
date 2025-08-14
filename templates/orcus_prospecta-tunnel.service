@@ -1,0 +1,12 @@
+[Unit]
+Description=Reverse SSH tunnel for felix.prospecta.cc (jumpbox on du2)
+After=network.target
+
+[Service]
+User=jd
+ExecStart=/usr/bin/ssh -NTC -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=accept-new -i /home/jd/.ssh/id_ed25519 -R 35032:localhost:35032 jd@felix.prospecta.cc
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target 

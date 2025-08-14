@@ -1,5 +1,23 @@
 # Changelog for `Prōspecta.cc`
 
+#### 2025-08-14 09:52 UTC (+00:00) [e040cd9] [ref-checking]
+
+##### [SNC] Reference checking alpha version - not OpenSearch (LAN)
+
+- UI: add html/reference-checking.php (AJAX search)
+
+- API: add html/rpc/reference-search.php with per-page pdftotext extraction + cache
+
+- Health: add html/health.php (JSON)
+
+- Landing: add html/index.php
+
+- Docs: update README; add CHANGELOG header; add vhost template under config/
+
+- Build: add .gitignore and scripts/add-changelog-entry.sh
+
+
+
 #### 2025-08-13 17:36 UTC (+00:00) [cee9d3b] [main]
 
 ##### [SNC] Add app skeleton pages and stub API
