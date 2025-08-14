@@ -31,3 +31,4 @@ $BODY
 
 awk -v entry="$ENTRY" 'NR==1{print;printed=1;next} printed{print ""; print entry; printed=0} {print}' "$CHANGELOG_FILE" > "$CHANGELOG_FILE.tmp"
 mv "$CHANGELOG_FILE.tmp" "$CHANGELOG_FILE"
+
