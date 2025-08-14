@@ -1,5 +1,13 @@
 # Changelog for `Prōspecta.cc`
 
+#### 2025-08-14 09:53 UTC (+00:00) [8059ba5] [ref-checking]
+
+##### add `templates/` from `prospecta`
+
+
+
+
+
 #### 2025-08-14 09:52 UTC (+00:00) [e040cd9] [ref-checking]
 
 ##### [SNC] Reference checking alpha version - not OpenSearch (LAN)
