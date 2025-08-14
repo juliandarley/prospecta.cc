@@ -49,6 +49,9 @@ Prospecta.cc is the new home for the Prospecta platform. It will host a clean Ap
    - Continue work on `ref-checking` branch; when verified, open PR and merge to `main`.
 
 ## VHost config (copy for ref - apply to `/etc/apache2/sites-available/prospecta-cc.conf`)
+
+Note:
+- We keep the latest vhost template in `config/v2-apache-vhost.config` (current). It scopes pretty-URL rewrites inside the `<Directory>` block and guards them with `<IfModule mod_rewrite.c>` so Apache won’t fail if the module isn’t enabled. The older variant remains as `config/v1-apache-vhost.config` for reference.
 ```
 <VirtualHost *:35232>
     ServerName prospecta.orcus.lan
