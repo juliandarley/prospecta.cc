@@ -1,5 +1,13 @@
 # Changelog for `Prōspecta.cc`
 
+#### 2025-08-14 13:07 UTC (+00:00) [b17c7e0] [ref-checking]
+
+##### updated vhost.config shadow
+
+
+
+
+
 #### 2025-08-14 10:09 UTC (+00:00) [a7a0ef1] [ref-checking]
 
 ##### update readme
