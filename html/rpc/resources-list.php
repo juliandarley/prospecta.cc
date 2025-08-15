@@ -71,6 +71,14 @@ foreach (glob($dir.'/*.pdf') as $f){
     $name = basename($f);
     $pages = get_pages($f);
     list($title, $titleSrc) = get_pdf_title($f, $sha, $titleCacheDir);
+    // Load sentinel suggestion if cached
+    $sentinelCache = '/var/www/prospecta.cc/tmp/titlecache/' . $sha . '.sentinel.json';
+    $sentinel = null;
+    if (is_file($sentinelCache)) {
+        $j = @file_get_contents($sentinelCache);
+        if ($j !== false) { $sentinel = @json_decode($j, true); }
+    }
+
     $items[] = [
         'filename'=>$name,
         'sha256'=>$sha,
@@ -81,6 +89,10 @@ foreach (glob($dir.'/*.pdf') as $f){
         'pages'=>$pages,
         'title'=>$title,
         'title_source'=>$titleSrc,
+        'sentinel'=> is_array($sentinel) ? [
+            'canonical_title' => $sentinel['canonical_title'] ?? '',
+            'confidence' => $sentinel['confidence'] ?? null
+        ] : null,
     ];
     $byName[$name] = ($byName[$name] ?? 0) + 1;
     $bySha[$sha]   = ($bySha[$sha] ?? 0) + 1;

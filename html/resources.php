@@ -23,7 +23,7 @@
 	</style>
 </head>
 <body>
-	<h1>Resources</h1>
+	<h1><a href="/" style="text-decoration:none;color:inherit">Prōspecta</a> · Resources</h1>
 	<div class="panel">
 		<h3>Upload PDF</h3>
 		<div class="row">
@@ -37,8 +37,11 @@
 	<div class="panel">
 		<h3>All Documents</h3>
 		<div class="row" style="justify-content:space-between">
-			<div>
+			<div class="row" style="gap:8px">
 				<button id="refresh">Refresh</button>
+				<label class="note">Sentinel model:
+					<select id="sentinelModel"></select>
+				</label>
 			</div>
 			<div class="note" id="summary"></div>
 		</div>
@@ -54,6 +57,9 @@
 						<th>Modified</th>
 						<th>Dup (name)</th>
 						<th>Dup (content)</th>
+						<th>Suggested (Sentinel)</th>
+						<th>Conf.</th>
+						<th>Actions</th>
 					</tr>
 				</thead>
 				<tbody></tbody>
@@ -69,6 +75,19 @@
 	const refreshBtn= el('#refresh');
 	const tbody     = el('#tbl tbody');
 	const summary   = el('#summary');
+	const modelSel  = el('#sentinelModel');
+	async function loadModels(){
+		try{
+			const res = await fetch('/rpc/sentinel-models.php');
+			const models = await res.json();
+			modelSel.innerHTML = '';
+			for(const m of models){
+				const opt = document.createElement('option');
+				opt.value = m.id; opt.textContent = m.label + ' ['+m.modality+']';
+				modelSel.appendChild(opt);
+			}
+		}catch(e){ /* ignore */ }
+	}
 
 	async function listDocs(){
 		try{
@@ -95,11 +114,51 @@
 				tr.appendChild(mk(it.mtime_human));
 				tr.appendChild(mk(it.dup_name? '<span class="badge dup">dup</span>':'<span class="badge ok">ok</span>'));
 				tr.appendChild(mk(it.dup_sha?  '<span class="badge dup">dup</span>':'<span class="badge ok">ok</span>'));
+				// Sentinel suggestion
+				const sug = it.sentinel && it.sentinel.canonical_title ? it.sentinel.canonical_title : '';
+				const conf = it.sentinel && typeof it.sentinel.confidence === 'number' ? Math.round(it.sentinel.confidence*100)+'%' : '';
+				tr.appendChild(mk(sug ? sug : '<span class="note">—</span>'));
+				tr.appendChild(mk(conf));
+				const actions = document.createElement('td');
+				const btn = document.createElement('button'); btn.textContent='Analyse with Sentinel';
+				btn.addEventListener('click', ()=>analyse(it.filename)); actions.appendChild(btn);
+				tr.appendChild(actions);
 				tbody.appendChild(tr);
 			}
 			summary.textContent = `${data.items.length} files` + (data.dups? `, ${data.dups.content} content dups, ${data.dups.name} name dups` : '');
 		}catch(e){
 			summary.textContent = 'Error: ' + e.message;
+		}
+	}
+
+	async function analyse(filename){
+		console.log('Starting Sentinel analysis for:', filename, 'with model:', modelSel.value);
+		try{
+			summary.textContent = `Analysing ${filename} with ${modelSel.options[modelSel.selectedIndex].text}...`;
+			const body = { filename, modelId: modelSel.value };
+			console.log('Sending request to /rpc/sentinel-extract.php with:', body);
+			const res = await fetch('/rpc/sentinel-extract.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+			console.log('Response status:', res.status, res.statusText);
+			const txt = await res.text();
+			console.log('Response text length:', txt.length, 'first 200 chars:', txt.substring(0, 200));
+			let data; 
+			try{ 
+				data = JSON.parse(txt); 
+			}catch{ 
+				console.error('Failed to parse JSON response:', txt);
+				throw new Error(txt || ('HTTP '+res.status)); 
+			}
+			if (!res.ok || data.error) {
+				const extra = data.raw_saved ? ` (details: ${data.raw_saved})` : '';
+				throw new Error((data.error || ('HTTP '+res.status)) + extra);
+			}
+			console.log('Analysis successful, result:', data.result);
+			summary.textContent = `Analysis complete for ${filename}`;
+			await listDocs();
+		}catch(e){
+			const errorMsg = 'Sentinel error for '+filename+': '+(e && e.message ? e.message : e);
+			summary.textContent = errorMsg;
+			console.error('Sentinel analysis error:', e);
 		}
 	}
 
@@ -127,6 +186,7 @@
 
 	uploadBtn.addEventListener('click', upload);
 	refreshBtn.addEventListener('click', listDocs);
+	loadModels();
 	listDocs();
 	</script>
 </body>

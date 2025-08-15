@@ -27,9 +27,19 @@
 			<a href="/reference-checking">Open</a>
 		</div>
 		<div class="card">
+			<h3>Resources</h3>
+			<p>Upload PDFs/URLs, list documents, detect duplicates, and view titles.</p>
+			<a href="/resources">Open</a>
+		</div>
+		<div class="card">
 			<h3>Health</h3>
 			<p>Simple health/status endpoint.</p>
 			<a href="/health">Open</a>
+		</div>
+		<div class="card">
+			<h3>Tests</h3>
+			<p>Connectivity tests and utilities (Ollama on delphi.lan).</p>
+			<a href="/test">Open</a>
 		</div>
 	</div>
 </body>

@@ -1,0 +1,20 @@
+{
+	"ollama-local": {
+		"type": "ollama",
+		"baseUrl": "http://delphi.lan:11434",
+		"textModel": "gemma3:4b",
+		"visionModel": "gemma3:4b"
+	},
+	"cloud-text": {
+		"type": "openai",
+		"baseUrl": "https://api.openai.com/v1",
+		"model": "gpt-4o-mini",
+		"apiKeyEnv": "OPENAI_API_KEY"
+	},
+	"cloud-vision": {
+		"type": "openai",
+		"baseUrl": "https://api.openai.com/v1",
+		"model": "gpt-4o",
+		"apiKeyEnv": "OPENAI_API_KEY"
+	}
+}
