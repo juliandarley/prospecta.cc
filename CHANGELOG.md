@@ -1,5 +1,17 @@
 # Changelog for `Prōspecta.cc`
 
+#### 2025-08-15 14:10 UTC (+00:00) [03bf333] [ref-checking]
+
+##### [SNC] Resources: add title extraction and better upload/list UX
+
+- List: new Title column with source (pdfinfo/cache/heuristic) and per-file title cache
+
+- Upload: clearer error messages for size/temp issues; UI shows non-200 bodies
+
+- UI: resources.php improved error handling and Title display
+
+
+
 #### 2025-08-15 11:44 UTC (+00:00) [20ed654] [ref-checking]
 
 ##### [SNC] Resources: secure downloads and robust uploads
