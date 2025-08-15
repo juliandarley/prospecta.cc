@@ -1,5 +1,13 @@
 # Changelog for `Prōspecta.cc`
 
+#### 2025-08-14 13:30 UTC (+00:00) [22cf95d] [ref-checking]
+
+##### copy and rename `reference-checking` to `ref-check-pdftotext.php` as backup ahead of major changes
+
+
+
+
+
 #### 2025-08-14 13:07 UTC (+00:00) [b17c7e0] [ref-checking]
 
 ##### updated vhost.config shadow
@@ -80,6 +88,7 @@
 
 
 All notable changes to this project will be documented here.
+
 
 
 
