@@ -47,6 +47,7 @@
 				<thead>
 					<tr>
 						<th>Filename</th>
+						<th>Title</th>
 						<th>SHA256</th>
 						<th>Size</th>
 						<th>Pages</th>
@@ -87,6 +88,7 @@
 				const mk = (h)=>{const td=document.createElement('td');td.innerHTML=h;return td};
 				const name = `<a href="/rpc/resources-download.php?name=${encodeURIComponent(it.filename)}" target="_blank">${it.filename}</a>`;
 				tr.appendChild(mk(name));
+				tr.appendChild(mk(it.title ? `${it.title} <span class=\"note\">(${it.title_source})</span>` : '<span class="note">—</span>'));
 				tr.appendChild(mk(`<code>${it.sha256}</code>`));
 				tr.appendChild(mk(it.size_human));
 				tr.appendChild(mk(it.pages ?? '')); 

@@ -16,12 +16,61 @@ function get_pages($path){
 }
 
 $items=[]; $byName=[]; $bySha=[];
+
+// Cache directory for lightweight metadata (e.g., extracted title)
+$titleCacheDir = '/var/www/prospecta.cc/tmp/titlecache';
+if (!is_dir($titleCacheDir)) { @mkdir($titleCacheDir, 0775, true); }
+
+function get_pdf_title($path, $sha, $titleCacheDir){
+    // 1) pdfinfo Title
+    $info = @shell_exec('pdfinfo ' . escapeshellarg($path) . ' 2>/dev/null');
+    if ($info && preg_match('/^Title:\s*(.+)$/mi', $info, $m)) {
+        $t = trim($m[1]);
+        if ($t !== '' && strcasecmp($t, '(null)') !== 0) {
+            return [$t, 'pdfinfo'];
+        }
+    }
+    // 2) cached heuristic
+    $cacheFile = $titleCacheDir . '/' . $sha . '.title.txt';
+    if (is_file($cacheFile)) {
+        $t = trim((string)@file_get_contents($cacheFile));
+        if ($t !== '') return [$t, 'cache'];
+    }
+    // 3) heuristics on first page text
+    $txt = (string)@shell_exec('pdftotext -enc UTF-8 -layout -f 1 -l 1 ' . escapeshellarg($path) . ' - 2>/dev/null');
+    $t = '';
+    if ($txt !== '') {
+        $lines = preg_split('/\R/u', $txt);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === '') continue;
+            // Skip boilerplate
+            $low = mb_strtolower($line, 'UTF-8');
+            if (preg_match('/^(abstract|introduction|contents|table of contents)\b/i', $low)) continue;
+            if (preg_match('/^www\.|http(s)?:\/\//i', $low)) continue;
+            // Reasonable length & composition
+            $len = mb_strlen($line, 'UTF-8');
+            $letters = preg_match_all('/\p{L}/u', $line, $dummy);
+            if ($len < 5 || $len > 150) continue;
+            if ($letters < 4) continue;
+            // Avoid lines that look like issues/codes only
+            if (preg_match('/\bISSN\b|\bISBN\b|\d{4}-\d{2}/i', $line)) continue;
+            $t = $line; break;
+        }
+    }
+    if ($t !== '') {
+        @file_put_contents($cacheFile, $t);
+        return [$t, 'heuristic'];
+    }
+    return ['', ''];
+}
 foreach (glob($dir.'/*.pdf') as $f){
     if(!is_file($f)) continue;
     $st = @stat($f); if(!$st) continue;
     $sha = @hash_file('sha256',$f) ?: '';
     $name = basename($f);
     $pages = get_pages($f);
+    list($title, $titleSrc) = get_pdf_title($f, $sha, $titleCacheDir);
     $items[] = [
         'filename'=>$name,
         'sha256'=>$sha,
@@ -30,6 +79,8 @@ foreach (glob($dir.'/*.pdf') as $f){
         'mtime'=>$st['mtime'],
         'mtime_human'=>date('Y-m-d H:i', $st['mtime']),
         'pages'=>$pages,
+        'title'=>$title,
+        'title_source'=>$titleSrc,
     ];
     $byName[$name] = ($byName[$name] ?? 0) + 1;
     $bySha[$sha]   = ($bySha[$sha] ?? 0) + 1;
