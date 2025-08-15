@@ -1,5 +1,19 @@
 # Changelog for `Prōspecta.cc`
 
+#### 2025-08-15 11:44 UTC (+00:00) [20ed654] [ref-checking]
+
+##### [SNC] Resources: secure downloads and robust uploads
+
+- UI: resources.php links now proxy via /rpc/resources-download.php (no direct file exposure)
+
+- API: add resources-download.php with range support and filename validation
+
+- API: resources-upload.php improved error reporting (size limits, tmp errors) and SHA256 handling
+
+- API: resources-list.php shows pages/dups and sizes
+
+
+
 #### 2025-08-14 13:30 UTC (+00:00) [22cf95d] [ref-checking]
 
 ##### copy and rename `reference-checking` to `ref-check-pdftotext.php` as backup ahead of major changes
