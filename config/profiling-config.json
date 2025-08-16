@@ -1,0 +1,96 @@
+{
+	"version": "1.0",
+	"comment": "Configuration for document bibliographic profiling - deterministic and Sentinel analysis",
+	
+	"deterministic": {
+		"date_patterns": {
+			"filename_patterns": [
+				"/(\\d{4})/",
+				"/(19|20)\\d{2}/",
+				"/_(\\d{4})_/",
+				"/-(\\d{4})-/"
+			],
+			"text_patterns": [
+				"/\\b(19|20)\\d{2}\\b/",
+				"/\\b(January|February|March|April|May|June|July|August|September|October|November|December)\\s+(\\d{1,2}),?\\s+(\\d{4})\\b/i",
+				"/\\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\.?\\s+(\\d{1,2}),?\\s+(\\d{4})\\b/i",
+				"/\\b(\\d{1,2})\\s+(January|February|March|April|May|June|July|August|September|October|November|December)\\s+(\\d{4})\\b/i",
+				"/\\b(\\d{4})-(\\d{2})-(\\d{2})\\b/",
+				"/\\b(\\d{2})\\/(\\d{2})\\/(\\d{4})\\b/",
+				"/Published:?\\s*([^\\n]{1,50})/i",
+				"/Copyright\\s*[©]?\\s*(\\d{4})/i"
+			]
+		},
+		"confidence_thresholds": {
+			"pdfinfo_date": 0.9,
+			"filename_year": 0.6,
+			"text_explicit_date": 0.8,
+			"text_year_only": 0.4,
+			"title_confidence": 0.7
+		},
+		"scan_limits": {
+			"title_search_pages": 1,
+			"date_search_pages": 3
+		}
+	},
+	
+	"sentinel": {
+		"trigger_conditions": {
+			"min_confidence_threshold": 0.6,
+			"require_date_if_missing": true,
+			"require_title_if_missing": true
+		},
+		"standard_analysis": {
+			"page_range": [1, 3],
+			"timeout_seconds": 25
+		},
+		"extended_analysis": {
+			"page_range": [1, 10],
+			"timeout_seconds": 45,
+			"trigger_if_standard_fails": true,
+			"doc_types_needing_extended": ["book", "thesis", "report"]
+		}
+	},
+	
+	"plausibility": {
+		"date_validation": {
+			"min_year": 1800,
+			"max_year": 2030,
+			"allow_future_dates": false
+		},
+		"title_validation": {
+			"min_length": 5,
+			"max_length": 300,
+			"reject_patterns": [
+				"/^page \\d+$/i",
+				"/^untitled$/i",
+				"/^document$/i",
+				"/^\\d+$/",
+				"/^[^a-zA-Z]*$/",
+				"/^(abstract|introduction|contents)$/i"
+			]
+		},
+		"confidence_adjustments": {
+			"reduce_if_no_date": 0.3,
+			"reduce_if_generic_title": 0.4,
+			"boost_if_multiple_sources_agree": 0.2
+		}
+	},
+	
+	"caching": {
+		"deterministic_cache_file": "{sha}.profile.json",
+		"sentinel_cache_file": "{sha}.sentinel.json",
+		"cache_expiry_days": 30,
+		"recalculate_on_config_change": true
+	},
+	
+	"logging": {
+		"log_deterministic_failures": true,
+		"log_low_confidence_results": true,
+		"log_plausibility_failures": true,
+		"log_extended_analysis_triggers": true
+	}
+}
+
+
+

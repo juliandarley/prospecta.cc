@@ -4,3 +4,6 @@
 	{"id": "cloud-text",   "label": "Cloud (text)",   "modality": "text",   "endpointRef": "cloud-text"},
 	{"id": "cloud-vision", "label": "Cloud (vision)", "modality": "vision", "endpointRef": "cloud-vision"}
 ]
+
+
+

@@ -91,7 +91,13 @@ foreach (glob($dir.'/*.pdf') as $f){
         'title_source'=>$titleSrc,
         'sentinel'=> is_array($sentinel) ? [
             'canonical_title' => $sentinel['canonical_title'] ?? '',
-            'confidence' => $sentinel['confidence'] ?? null
+            'confidence' => $sentinel['confidence'] ?? null,
+            'doc_type' => $sentinel['doc_type'] ?? '',
+            'publication' => $sentinel['publication'] ?? '',
+            'year' => $sentinel['year'] ?? null,
+            'date' => $sentinel['date'] ?? '',
+            'authors' => $sentinel['authors'] ?? [],
+            'editors' => $sentinel['editors'] ?? []
         ] : null,
     ];
     $byName[$name] = ($byName[$name] ?? 0) + 1;

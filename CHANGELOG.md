@@ -1,5 +1,27 @@
 # Changelog for `Prōspecta.cc`
 
+#### 2025-08-15 17:52 UTC (+00:00) [1d10fbd] [ref-checking]
+
+##### Fix Sentinel analysis button and model configuration
+
+- Fix JavaScript syntax error: move analyse() function outside table loop
+
+- Add comprehensive console logging for debugging button clicks and requests
+
+- Fix model configuration: use gemma3:4b for both text and vision (multi-modal)
+
+- Add request timeouts to prevent 504 gateway timeouts
+
+- Improve Sentinel prompt to limit evidence arrays (max 5 items, no repetition)
+
+- Add Sentinel configuration files and test endpoints
+
+- Add Ollama proxy endpoints for tags, generate, and chat
+
+- Add test UI for interactive Ollama model testing
+
+
+
 #### 2025-08-15 14:10 UTC (+00:00) [03bf333] [ref-checking]
 
 ##### [SNC] Resources: add title extraction and better upload/list UX
@@ -114,6 +136,9 @@
 
 
 All notable changes to this project will be documented here.
+
+
+
 
 
 

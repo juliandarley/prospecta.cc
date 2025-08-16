@@ -98,3 +98,6 @@
 - All errors should surface in‑page (no browser alerts) and be logged under `logs/`.
 - Vision models require `pdftoppm` and may be slower; we cache PNG previews under `tmp/titlecache/`.
 - Keep configs (`config/*.json`) out of web root; use RPC to expose necessary metadata only.
+
+
+
