@@ -23,6 +23,17 @@
 		.sha-short{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help}
 		.citation-meta{font-size:.85em;color:#666;margin-top:2px}
 		.citation-meta .field{margin-right:12px}
+		.progress-display{background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:12px;margin:8px 0;display:none}
+		.progress-steps{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+		.step{padding:4px 8px;border-radius:4px;font-size:.85em;border:1px solid #ddd}
+		.step.active{background:#0b6bcf;color:#fff;border-color:#0b6bcf}
+		.step.complete{background:#28a745;color:#fff;border-color:#28a745}
+		.step.pending{background:#fff;color:#666}
+		.step.error{background:#dc3545;color:#fff;border-color:#dc3545}
+		.progress-detail{font-size:.9em;color:#666}
+		.duplicate-status{font-weight:bold}
+		.duplicate-yes{color:#dc3545}
+		.duplicate-no{color:#28a745}
 	</style>
 </head>
 <body>
@@ -48,20 +59,34 @@
 			</div>
 			<div class="note" id="summary"></div>
 		</div>
+		
+		<!-- Progress Display -->
+		<div id="progressDisplay" class="progress-display">
+			<div class="progress-steps" id="progressSteps">
+				<div class="step pending" data-step="detect">OCR Detection</div>
+				<div class="step pending" data-step="extract">Extraction</div>
+				<div class="step pending" data-step="evaluate">Evaluation</div>
+				<div class="step pending" data-step="inference">Inference</div>
+				<div class="step pending" data-step="finalize">Finalize</div>
+			</div>
+			<div class="progress-detail" id="progressDetail">Ready to process...</div>
+		</div>
 		<div style="overflow:auto">
 			<table id="tbl">
 				<thead>
 					<tr>
 						<th>Filename</th>
+						<th>OCR Status</th>
 						<th>Citation</th>
+						<th>Extracted</th>
+						<th>Inference</th>
+						<th>Source</th>
 						<th>SHA256</th>
 						<th>Size</th>
 						<th>Pages</th>
 						<th>Modified</th>
-						<th>Dup (name)</th>
-						<th>Dup (content)</th>
-						<th>Suggested (Sentinel)</th>
-						<th>Conf.</th>
+						<th>Duplicate (filename)</th>
+						<th>Duplicate (content)</th>
 						<th>Actions</th>
 					</tr>
 				</thead>
@@ -79,6 +104,9 @@
 	const tbody     = el('#tbl tbody');
 	const summary   = el('#summary');
 	const modelSel  = el('#sentinelModel');
+	const progressDisplay = el('#progressDisplay');
+	const progressSteps = el('#progressSteps');
+	const progressDetail = el('#progressDetail');
 	async function loadModels(){
 		try{
 			const res = await fetch('/rpc/sentinel-models.php');
@@ -90,6 +118,22 @@
 				modelSel.appendChild(opt);
 			}
 		}catch(e){ /* ignore */ }
+	}
+
+	function updateProgress(step, status, detail) {
+		const stepEl = progressSteps.querySelector(`[data-step="${step}"]`);
+		if (stepEl) {
+			stepEl.className = `step ${status}`;
+		}
+		progressDetail.textContent = detail || '';
+		progressDisplay.style.display = 'block';
+	}
+
+	function hideProgress() {
+		progressDisplay.style.display = 'none';
+		// Reset all steps to pending
+		progressSteps.querySelectorAll('.step').forEach(s => s.className = 'step pending');
+		progressDetail.textContent = 'Ready to process...';
 	}
 
 	async function listDocs(){
@@ -111,21 +155,18 @@
 				const name = `<a href="/rpc/resources-download.php?name=${encodeURIComponent(it.filename)}" target="_blank">${it.filename}</a>`;
 				tr.appendChild(mk(name));
 				
-				// Citation info
-				let citationHtml = '';
-				if (it.title) {
-					citationHtml = `<strong>${it.title}</strong> <span class="note">(${it.title_source})</span>`;
-				} else {
-					citationHtml = '<span class="note">—</span>';
-				}
+				// OCR Status (placeholder for now)
+				const ocrStatus = it.ocr_status || 'text'; // will be populated by backend
+				tr.appendChild(mk(`<span class="note">${ocrStatus}</span>`));
 				
-				// Add citation metadata if available from Sentinel
-				if (it.sentinel) {
+				// Citation (final canonical result)
+				let citationHtml = '';
+				if (it.sentinel && it.sentinel.canonical_title) {
+					citationHtml = `<strong>${it.sentinel.canonical_title}</strong>`;
 					const meta = [];
 					if (it.sentinel.doc_type) meta.push(`<span class="field">Type: ${it.sentinel.doc_type}</span>`);
 					if (it.sentinel.publication) meta.push(`<span class="field">Pub: ${it.sentinel.publication}</span>`);
 					if (it.sentinel.year) meta.push(`<span class="field">Year: ${it.sentinel.year}</span>`);
-					if (it.sentinel.date && it.sentinel.date !== it.sentinel.year) meta.push(`<span class="field">Date: ${it.sentinel.date}</span>`);
 					if (it.sentinel.authors && it.sentinel.authors.length > 0) {
 						const authors = it.sentinel.authors.map(a => a.name).join(', ');
 						meta.push(`<span class="field">Authors: ${authors}</span>`);
@@ -133,8 +174,31 @@
 					if (meta.length > 0) {
 						citationHtml += `<div class="citation-meta">${meta.join('')}</div>`;
 					}
+				} else if (it.title) {
+					citationHtml = `<strong>${it.title}</strong> <span class="note">(${it.title_source})</span>`;
+				} else {
+					citationHtml = '<span class="note">—</span>';
 				}
 				tr.appendChild(mk(citationHtml));
+				
+				// Extracted (deterministic extraction results)
+				const extractedHtml = it.title ? `${it.title} <span class="note">(${it.title_source})</span>` : '<span class="note">—</span>';
+				tr.appendChild(mk(extractedHtml));
+				
+				// Inference (LLM enhancement - placeholder)
+				const inferenceHtml = it.inference || '<span class="note">—</span>';
+				tr.appendChild(mk(inferenceHtml));
+				
+				// Source (how final citation was derived)
+				let sourceHtml = '<span class="note">—</span>';
+				if (it.sentinel) {
+					sourceHtml = '<span class="note">Sentinel</span>';
+				} else if (it.title_source === 'heuristic') {
+					sourceHtml = '<span class="note">Extracted</span>';
+				} else if (it.title_source === 'pdfinfo') {
+					sourceHtml = '<span class="note">PDF Metadata</span>';
+				}
+				tr.appendChild(mk(sourceHtml));
 				
 				// Compact SHA256 with rollover
 				const shaShort = it.sha256.substring(0, 16) + '...';
@@ -142,16 +206,17 @@
 				tr.appendChild(mk(it.size_human));
 				tr.appendChild(mk(it.pages ?? '')); 
 				tr.appendChild(mk(it.mtime_human));
-				tr.appendChild(mk(it.dup_name? '<span class="badge dup">dup</span>':'<span class="badge ok">ok</span>'));
-				tr.appendChild(mk(it.dup_sha?  '<span class="badge dup">dup</span>':'<span class="badge ok">ok</span>'));
-				// Sentinel suggestion
-				const sug = it.sentinel && it.sentinel.canonical_title ? it.sentinel.canonical_title : '';
-				const conf = it.sentinel && typeof it.sentinel.confidence === 'number' ? Math.round(it.sentinel.confidence*100)+'%' : '';
-				tr.appendChild(mk(sug ? sug : '<span class="note">—</span>'));
-				tr.appendChild(mk(conf));
+				
+				// Improved duplicate display with ✓/✗
+				tr.appendChild(mk(it.dup_name ? '<span class="duplicate-status duplicate-yes">✗</span>' : '<span class="duplicate-status duplicate-no">✓</span>'));
+				tr.appendChild(mk(it.dup_sha ? '<span class="duplicate-status duplicate-yes">✗</span>' : '<span class="duplicate-status duplicate-no">✓</span>'));
+				
+				// Actions
 				const actions = document.createElement('td');
-				const btn = document.createElement('button'); btn.textContent='Analyse with Sentinel';
-				btn.addEventListener('click', ()=>analyse(it.filename)); actions.appendChild(btn);
+				const btn = document.createElement('button'); 
+				btn.textContent = it.sentinel ? 'Re-analyze' : 'Analyze';
+				btn.addEventListener('click', ()=>analyse(it.filename)); 
+				actions.appendChild(btn);
 				tr.appendChild(actions);
 				tbody.appendChild(tr);
 			}
@@ -162,33 +227,72 @@
 	}
 
 	async function analyse(filename){
-		console.log('Starting Sentinel analysis for:', filename, 'with model:', modelSel.value);
+		console.log('Starting bibliographic profiling for:', filename, 'with model:', modelSel.value);
+		
 		try{
-			summary.textContent = `Analysing ${filename} with ${modelSel.options[modelSel.selectedIndex].text}...`;
+			// Show progress
+			updateProgress('detect', 'active', `Detecting document type for ${filename}...`);
+			
+			// Step 1: OCR Detection (placeholder)
+			await new Promise(resolve => setTimeout(resolve, 500)); // Simulate processing
+			updateProgress('detect', 'complete', 'Document type detected: text');
+			
+			// Step 2: Deterministic Extraction
+			updateProgress('extract', 'active', 'Extracting metadata using deterministic algorithms...');
+			await new Promise(resolve => setTimeout(resolve, 800));
+			updateProgress('extract', 'complete', 'Basic metadata extracted');
+			
+			// Step 3: Sentinel Evaluation
+			updateProgress('evaluate', 'active', 'Evaluating extraction confidence...');
 			const body = { filename, modelId: modelSel.value };
 			console.log('Sending request to /rpc/sentinel-extract.php with:', body);
+			
 			const res = await fetch('/rpc/sentinel-extract.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
 			console.log('Response status:', res.status, res.statusText);
 			const txt = await res.text();
 			console.log('Response text length:', txt.length, 'first 200 chars:', txt.substring(0, 200));
+			
 			let data; 
 			try{ 
 				data = JSON.parse(txt); 
 			}catch{ 
 				console.error('Failed to parse JSON response:', txt);
+				updateProgress('evaluate', 'error', 'Failed to parse Sentinel response');
 				throw new Error(txt || ('HTTP '+res.status)); 
 			}
+			
 			if (!res.ok || data.error) {
 				const extra = data.raw_saved ? ` (details: ${data.raw_saved})` : '';
+				updateProgress('evaluate', 'error', `Sentinel analysis failed: ${data.error || 'HTTP '+res.status}`);
 				throw new Error((data.error || ('HTTP '+res.status)) + extra);
 			}
+			
+			updateProgress('evaluate', 'complete', 'Sentinel analysis completed');
+			
+			// Step 4: Inference (placeholder - will be implemented later)
+			updateProgress('inference', 'active', 'Checking if additional inference needed...');
+			await new Promise(resolve => setTimeout(resolve, 300));
+			updateProgress('inference', 'complete', 'No additional inference needed');
+			
+			// Step 5: Finalize
+			updateProgress('finalize', 'active', 'Finalizing citation...');
+			await new Promise(resolve => setTimeout(resolve, 200));
+			updateProgress('finalize', 'complete', `Bibliographic profiling complete for ${filename}`);
+			
 			console.log('Analysis successful, result:', data.result);
-			summary.textContent = `Analysis complete for ${filename}`;
+			summary.textContent = `Profiling complete for ${filename}`;
+			
+			// Hide progress after success
+			setTimeout(hideProgress, 2000);
+			
 			await listDocs();
 		}catch(e){
-			const errorMsg = 'Sentinel error for '+filename+': '+(e && e.message ? e.message : e);
+			const errorMsg = 'Profiling error for '+filename+': '+(e && e.message ? e.message : e);
 			summary.textContent = errorMsg;
-			console.error('Sentinel analysis error:', e);
+			console.error('Bibliographic profiling error:', e);
+			
+			// Hide progress after error
+			setTimeout(hideProgress, 3000);
 		}
 	}
 

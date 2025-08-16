@@ -1,5 +1,29 @@
 # Changelog for `Prōspecta.cc`
 
+#### 2025-08-16 17:34 UTC (+00:00) [0bd4b55] [ref-checking]
+
+##### Enhance Resources UI with citation display and SHA256 compaction
+
+- Change Title column to Citation for better bibliographic focus
+
+- Add rich citation metadata display (doc type, publication, year, authors)
+
+- Compact SHA256 column showing first 16 chars with full hash on hover
+
+- Extend resources-list.php to expose all Sentinel fields (authors, editors, publication, etc)
+
+- Add CSS styling for citation metadata and SHA256 hover tooltips
+
+- Create resources-v1.php backup to preserve previous working version
+
+- Add profiling-config.json with comprehensive document analysis configuration
+
+- Configure date extraction patterns, confidence thresholds, and plausibility rules
+
+- Set historical date range (1800-2030) for academic document support
+
+
+
 #### 2025-08-15 17:52 UTC (+00:00) [1d10fbd] [ref-checking]
 
 ##### Fix Sentinel analysis button and model configuration
